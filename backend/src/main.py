@@ -138,6 +138,18 @@ def create_app() -> FastAPI:
 
     app.include_router(router)
 
+    # Serve static dashboard if built (for production single-server deploy)
+    static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+    if os.path.isdir(static_dir):
+        from fastapi.staticfiles import StaticFiles
+        from fastapi.responses import FileResponse
+
+        @app.get("/")
+        async def serve_index():
+            return FileResponse(os.path.join(static_dir, "index.html"))
+
+        app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+
     bot = BotOrchestrator()
 
     @app.on_event("startup")
